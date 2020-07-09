@@ -1,6 +1,6 @@
 import socket
 import select
-from threading import *
+from threading import _start_new_thread
 import sys
 
 
@@ -23,26 +23,26 @@ server.listen(100)
 list_of_clients=[]
 
 def clientthread(conn, addr):
-    conn.send("Welcome to this chatroom!")
+    conn.send("Welcome to this chatroom!".encode())
     #sends a message to the client whose user object is conn
     while True:
             try:     
-                message = conn.recv(2048)    
+                message = conn.recv(2048).decode('utf-8')
                 if message:
                     print("<" + addr[0] + "> " + message)
                     message_to_send = "<" + addr[0] + "> " + message
-                    broadcast(message_to_send,conn)
+                    broadcast(message_to_send, conn)
                     #prints the message and address of the user who just sent the message on the server terminal
                 else:
                     remove(conn)
             except:
                 continue
 
-def broadcast(message,connection):
+def broadcast(message, connection):
     for clients in list_of_clients:
-        if clients!=connection:
+        if clients != connection:
             try:
-                clients.send(message)
+                clients.send(message.encode('utf-8'))
             except:
                 clients.close()
                 remove(clients)
@@ -61,7 +61,7 @@ while True:
     print(addr[0] + " connected")
     #maintains a list of clients for ease of broadcasting a message to all available people in the chatroom
     #Prints the address of the person who just connected
-    start_new_thread(clientthread,(conn,addr))
+    _start_new_thread(clientthread, (conn,addr))
     #creates and individual thread for every user that connects
 
 conn.close()
